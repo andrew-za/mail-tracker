@@ -16,10 +16,9 @@ class MailTracker implements \Swift_Events_SendListener {
 	 */
 	public function beforeSendPerformed(\Swift_Events_SendEvent $event)
 	{
-		$message = $event->getMessage();
 
         // Create the trackers
-        $this->createTrackers($message);
+        $this->createTrackers($event);
 
     	// Purge old records
         $this->purgeOldRecords();
@@ -114,8 +113,11 @@ class MailTracker implements \Swift_Events_SendListener {
      * @param  Swift_Mime_Message $message
      * @return void
      */
-    protected function createTrackers($message)
+    protected function createTrackers($event)
     {
+
+        $message = $event->getMessage();
+
         foreach($message->getTo() as $to_email=>$to_name) {
             foreach($message->getFrom() as $from_email=>$from_name) {
                 $headers = $message->getHeaders();
@@ -125,6 +127,8 @@ class MailTracker implements \Swift_Events_SendListener {
 
                 // Optionally store body of email
                 $original_content = config('mail-tracker.store_body') ? $message->getBody() : null;
+
+                $header_content = config('mail-tracker.store_header') ? $headers->toString() : null;
 
                 if ($message->getContentType() === 'text/html' ||
                     ($message->getContentType() === 'multipart/alternative' && $message->getBody())
@@ -141,7 +145,7 @@ class MailTracker implements \Swift_Events_SendListener {
 
                 $tracker = SentEmail::create([
                     'hash'=>$hash,
-                    'headers'=>$headers->toString(),
+                    'headers'=>$header_content,
                     'sender'=>$from_name." <".$from_email.">",
                     'recipient'=>$to_name.' <'.$to_email.'>',
                     'subject'=>$subject,
