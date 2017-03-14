@@ -12,6 +12,11 @@ return [
     'track-links'=>true,
 
     /**
+     * Option to store full email body or not
+     */
+    'store_body'=>true,
+
+    /**
      * Optionally expire old emails, set to 0 to keep forever.
      */
     'expire-days'=>60,

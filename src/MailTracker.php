@@ -123,7 +123,8 @@ class MailTracker implements \Swift_Events_SendListener {
                 $headers->addTextHeader('X-Mailer-Hash',$hash);
                 $subject = $message->getSubject();
 
-                $original_content = $message->getBody();
+                // Optionally store body of email
+                $original_content = config('mail-tracker.store_body') ? $message->getBody() : null;
 
                 if ($message->getContentType() === 'text/html' ||
                     ($message->getContentType() === 'multipart/alternative' && $message->getBody())
