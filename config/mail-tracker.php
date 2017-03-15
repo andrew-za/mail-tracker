@@ -15,6 +15,7 @@ return [
      * Option to store full email body or not
      */
     'store_body'=>true,
+    'store_header'=>true,
 
     /**
      * Optionally expire old emails, set to 0 to keep forever.
