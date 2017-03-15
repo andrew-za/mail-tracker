@@ -147,7 +147,7 @@ class MailTracker implements \Swift_Events_SendListener {
                     'hash'=>$hash,
                     'headers'=>$header_content,
                     'sender'=>$from_name." <".$from_email.">",
-                    'recipient'=>$to_name.' <'.$to_email.'>',
+                    'recipient'=>$to_email,
                     'subject'=>$subject,
                     'content'=>$original_content,
                     'opens'=>0,
