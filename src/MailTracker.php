@@ -125,6 +125,11 @@ class MailTracker implements \Swift_Events_SendListener {
 
                 $original_content = $message->getBody();
 
+                $attachments = [];
+                foreach ($message->getChildren() as $child) {
+                    $attachments[] = $child->getFilename();
+                }
+
                 if ($message->getContentType() === 'text/html' ||
                     ($message->getContentType() === 'multipart/alternative' && $message->getBody()) ||
                     ($message->getContentType() === 'multipart/mixed' && $message->getBody())
@@ -142,10 +147,13 @@ class MailTracker implements \Swift_Events_SendListener {
                 $tracker = SentEmail::create([
                     'hash'=>$hash,
                     'headers'=>$headers->toString(),
-                    'sender'=>$from_name." <".$from_email.">",
-                    'recipient'=>$to_name.' <'.$to_email.'>',
+                    'sender_name'=>$from_name,
+                    'sender_email'=>$from_email,
+                    'recipient_name'=>$to_name,
+                    'recipient_email'=>$to_email,
                     'subject'=>$subject,
                     'content'=>$original_content,
+                    'attachments'=> $attachments?serialize($attachments):null,
                     'opens'=>0,
                     'clicks'=>0,
                     'message_id'=>$message->getId(),
