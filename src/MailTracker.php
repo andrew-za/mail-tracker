@@ -6,6 +6,9 @@ use jdavidbakr\MailTracker\Model\SentEmail;
 use jdavidbakr\MailTracker\Model\SentEmailUrlClicked;
 use jdavidbakr\MailTracker\Events\EmailSentEvent;
 use Event;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use jdavidbakr\MailTracker\Model\SentEmailsAttachments;
 
 class MailTracker implements \Swift_Events_SendListener {
 
@@ -126,9 +129,6 @@ class MailTracker implements \Swift_Events_SendListener {
                 $original_content = $message->getBody();
 
                 $attachments = [];
-                foreach ($message->getChildren() as $child) {
-                    $attachments[] = $child->getFilename();
-                }
 
                 if ($message->getContentType() === 'text/html' ||
                     ($message->getContentType() === 'multipart/alternative' && $message->getBody()) ||
@@ -142,6 +142,15 @@ class MailTracker implements \Swift_Events_SendListener {
                         $converter->setHTML($part->getBody());
                         $part->setBody($this->addTrackers($message->getBody(), $hash));
                     }
+                    if($part->getFilename())
+                    {
+                        $path = "attachments/". md5(microtime(true)) . "/" . $part->getFilename();
+                        if(Storage::put($path,$part->getBody()))
+                            $attachments[] = new SentEmailsAttachments([
+                                "path" => $path
+                            ]);
+                    }
+                        
                 }
 
                 $tracker = SentEmail::create([
@@ -153,12 +162,15 @@ class MailTracker implements \Swift_Events_SendListener {
                     'recipient_email'=>$to_email,
                     'subject'=>$subject,
                     'content'=>$original_content,
-                    'attachments'=> $attachments?serialize($attachments):null,
                     'opens'=>0,
                     'clicks'=>0,
                     'message_id'=>$message->getId(),
                     'meta'=>[],
                 ]);
+
+                $tracker->attachments()->saveMany($attachments);
+
+
 
                 Event::fire(new EmailSentEvent($tracker));
             }
@@ -177,7 +189,15 @@ class MailTracker implements \Swift_Events_SendListener {
                 ->subDays(config('mail-tracker.expire-days')))
                 ->select('id')
                 ->get();
+            //deleting all attachments    
+            foreach($emails as $email)
+            {
+                foreach($email->attachments as $attachment)
+                    Storage::delete($attachment->path);
+            }
+
             SentEmailUrlClicked::whereIn('sent_email_id',$emails->pluck('id'))->delete();
+            SentEmailsAttachments::whereIn('sent_email_id',$emails->pluck('id'))->delete();
             SentEmail::whereIn('id',$emails->pluck('id'))->delete();
         }
     }

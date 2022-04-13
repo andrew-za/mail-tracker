@@ -93,4 +93,10 @@ class SentEmail extends Model
             });
         return $headers->get($key);
     }
+
+
+    public function attachments()
+    {
+        return $this->hasMany(SentEmailsAttachments::class);
+    }
 }
