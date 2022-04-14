@@ -54,4 +54,9 @@ return [
      */
     'date-format' => 'm/d/Y g:i a',
 
+    /**
+     * Optionally store attachments in the filesystem.
+     */
+    'store-attachments' => false,
+
 ];

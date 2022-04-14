@@ -142,9 +142,10 @@ class MailTracker implements \Swift_Events_SendListener {
                         $converter->setHTML($part->getBody());
                         $part->setBody($this->addTrackers($message->getBody(), $hash));
                     }
-                    if($part->getFilename())
+                    if(config('mail-tracker.store-attachments') && $part->getFilename())
                     {
-                        $path = "attachments/". md5(microtime(true)) . "/" . $part->getFilename();
+                     
+                        $path = "attachments/" . md5(microtime(true)) . "/" . $part->getFilename();
                         if(Storage::put($path,$part->getBody()))
                             $attachments[] = new SentEmailsAttachments([
                                 "path" => $path
@@ -167,8 +168,8 @@ class MailTracker implements \Swift_Events_SendListener {
                     'message_id'=>$message->getId(),
                     'meta'=>[],
                 ]);
-
-                $tracker->attachments()->saveMany($attachments);
+                if(config('mail-tracker.store-attachments'))
+                    $tracker->attachments()->saveMany($attachments);
 
 
 
