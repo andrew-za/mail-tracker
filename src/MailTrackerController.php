@@ -39,9 +39,9 @@ class MailTrackerController extends Controller
 
     public function getL($url, $hash)
     {
-    	$url = base64_decode(str_replace("$","/",$url));
+    	$url = str_replace('&amp;', '&',base64_decode(str_replace("$","/",$url)));
     	$tracker = Model\SentEmail::where('hash',$hash)
-    		->first();
+    		->first();        
     	if($tracker) {
     		$tracker->clicks++;
     		$tracker->save();
