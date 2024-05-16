@@ -142,16 +142,16 @@ class MailTracker implements \Swift_Events_SendListener {
                         $converter->setHTML($part->getBody());
                         $part->setBody($this->addTrackers($message->getBody(), $hash));
                     }
-                    if(config('mail-tracker.store-attachments') && $part->getFilename())
+                    /*if(config('mail-tracker.store-attachments') && $part->getFilename())
                     {
-                     
+
                         $path = "attachments/" . md5(microtime(true)) . "/" . $part->getFilename();
                         if(Storage::put($path,$part->getBody()))
                             $attachments[] = new SentEmailsAttachments([
                                 "path" => $path
                             ]);
-                    }
-                        
+                    }*/
+
                 }
 
                 $tracker = SentEmail::create([
@@ -190,7 +190,7 @@ class MailTracker implements \Swift_Events_SendListener {
                 ->subDays(config('mail-tracker.expire-days')))
                 ->select('id')
                 ->get();
-            //deleting all attachments    
+            //deleting all attachments
             foreach($emails as $email)
             {
                 foreach($email->attachments as $attachment)
