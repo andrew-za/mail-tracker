@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 return [
     /**
@@ -59,4 +59,8 @@ return [
      */
     'store-attachments' => false,
 
+    /**
+     * Path where the attachements should be stored
+     */
+    'attachments-path-storage' => env('ATTACHMENTS_PATH_STORAGE'),
 ];

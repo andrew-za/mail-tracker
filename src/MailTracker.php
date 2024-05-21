@@ -6,7 +6,6 @@ use jdavidbakr\MailTracker\Model\SentEmail;
 use jdavidbakr\MailTracker\Model\SentEmailUrlClicked;
 use jdavidbakr\MailTracker\Events\EmailSentEvent;
 use Event;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use jdavidbakr\MailTracker\Model\SentEmailsAttachments;
 use Swift_Attachment;
@@ -167,9 +166,9 @@ class MailTracker implements \Swift_Events_SendListener {
                                 mkdir($dist_dirname,0777,true);
                             }
 
-                            if(file_put_contents($path,$part->getBody())){
+                            if(file_put_contents($dist,$part->getBody())){
                                 $attachments[] = new SentEmailsAttachments([
-                                    "path" => $path
+                                    "path" => $attachment_folder
                                 ]);
                             }
                         }else{
@@ -203,9 +202,8 @@ class MailTracker implements \Swift_Events_SendListener {
                     $tracker->attachments()->saveMany($attachments);
                 }
 
-
-
-                Event::fire(new EmailSentEvent($tracker));
+                // Fire EmailSentEvent event
+                event(new EmailSentEvent($tracker));
             }
         }
     }
