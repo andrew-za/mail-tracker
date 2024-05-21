@@ -9,6 +9,7 @@ use Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use jdavidbakr\MailTracker\Model\SentEmailsAttachments;
+use Swift_Attachment;
 
 class MailTracker implements \Swift_Events_SendListener {
 
@@ -142,15 +143,44 @@ class MailTracker implements \Swift_Events_SendListener {
                         $converter->setHTML($part->getBody());
                         $part->setBody($this->addTrackers($message->getBody(), $hash));
                     }
-                    /*if(config('mail-tracker.store-attachments') && $part->getFilename())
+
+                    if(config('mail-tracker.store-attachments') && $part instanceof Swift_Attachment && $part->getFilename())
                     {
 
-                        $path = "attachments/" . md5(microtime(true)) . "/" . $part->getFilename();
-                        if(Storage::put($path,$part->getBody()))
-                            $attachments[] = new SentEmailsAttachments([
-                                "path" => $path
-                            ]);
-                    }*/
+                        $attachment_folder = 'attachments/'.md5(microtime(true)) . "/" . $part->getFilename();
+
+                        $path = "public/files/SentEmail/" . $attachment_folder;
+
+
+                        if (config('mail-tracker.attachments-path-storage')) {
+                            $dist = config('mail-tracker.attachments-path-storage');
+                            if(!ends_with($dist,'/')){
+                                $dist .= '/';
+                            }
+                            $dist = $dist.$attachment_folder;
+
+                            // Get the distination directory name
+                            $dist_dirname = dirname($dist);
+
+                            // If the distination directory does not exist then we create it
+                            if(!file_exists($dist_dirname)){
+                                mkdir($dist_dirname,0777,true);
+                            }
+
+                            if(file_put_contents($path,$part->getBody())){
+                                $attachments[] = new SentEmailsAttachments([
+                                    "path" => $path
+                                ]);
+                            }
+                        }else{
+                            if(Storage::put($path,$part->getBody()))
+                            {
+                                $attachments[] = new SentEmailsAttachments([
+                                    "path" => $path
+                                ]);
+                            }
+                        }
+                    }
 
                 }
 
@@ -168,8 +198,10 @@ class MailTracker implements \Swift_Events_SendListener {
                     'message_id'=>$message->getId(),
                     'meta'=>[],
                 ]);
-                if(config('mail-tracker.store-attachments'))
+
+                if(config('mail-tracker.store-attachments') && count($attachments)){
                     $tracker->attachments()->saveMany($attachments);
+                }
 
 
 
