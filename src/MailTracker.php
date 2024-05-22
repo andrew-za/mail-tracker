@@ -119,6 +119,12 @@ class MailTracker implements \Swift_Events_SendListener {
      */
     protected function createTrackers($message)
     {
+        $headers = $message->getHeaders();
+
+        if ($headers->has('X-No-Track') && $headers->get('X-No-Track')->getFieldBodyModel() == 'disable') {
+            return ;
+        }
+
         foreach($message->getTo() as $to_email=>$to_name) {
             foreach($message->getFrom() as $from_email=>$from_name) {
                 $headers = $message->getHeaders();
