@@ -173,15 +173,20 @@ class MailTracker implements \Swift_Events_SendListener {
                             }
 
                             if(file_put_contents($dist,$part->getBody())){
+                                
+                                // Create a folder and a symbolic link to the custom Folder
+                                Storage::makeDirectory(dirname($path));
+                                symlink($dist,storage_path('app/'.$path));
+
                                 $attachments[] = new SentEmailsAttachments([
-                                    "path" => $attachment_folder
+                                    "path" => str_replace_first('public/','',$path)
                                 ]);
                             }
                         }else{
                             if(Storage::put($path,$part->getBody()))
                             {
                                 $attachments[] = new SentEmailsAttachments([
-                                    "path" => $path
+                                    "path" => str_replace_first('public/','',$path)
                                 ]);
                             }
                         }
