@@ -14,7 +14,6 @@ class CreateSentEmailsTable extends Migration
     {
         Schema::create('sent_emails', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('BatchID')->default(0)->after('id');
             $table->char('hash',32)->unique();
             $table->text('headers')->nullable();
             $table->string('sender_name')->nullable();
